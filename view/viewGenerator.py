@@ -93,7 +93,7 @@ class ViewGenerator:
                 self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                 self.main_window['_BTN_RESET_VIDEO_'].update(disabled=False)
                 # init daemon video player
-                self.video_player_thread = VideoPlayerExtractor(self.main_window, self.predictor, self.dict_settings_video)
+                self.video_player_thread = VideoPlayerExtractor(self, self.predictor, self.dict_settings_video)
                 # Upgrade progress_bar
                 self.init_progress_bar(self.video_player_thread.limit_frames[1], round(self.video_player_thread.duration_movie_second * 1000))
                 # Setting predictor
@@ -102,6 +102,7 @@ class ViewGenerator:
                 self.video_player_thread.start()
                 disable_element(self.main_window['_CONTROL_GROUP_BTN_'], False)
                 self.main_window['_BTN_SAVE_CSV_'].update(disabled=False)
+                self.unlock_features_buttons(True)
 
             if self.video_player_thread:
                 if event == '_BTN_RESET_VIDEO_':
@@ -123,6 +124,7 @@ class ViewGenerator:
                         self.main_window['_PLAY_PAUSE_BUTTON_'].update('Play')
                         disable_element(self.main_window['_CONTROL_GROUP_BTN_'], True)
                         self.main_window['_BTN_SAVE_CSV_'].update(disabled=True)
+                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                         reset_red_all_btn(self.main_window[f'_FRAME_{TypeShot.ANGLE.name}_BUTTONS_'])
                         reset_red_all_btn(self.main_window[f'_FRAME_{TypeShot.LEVEL.name}_BUTTONS_'])
                         reset_red_all_btn(self.main_window[f'_FRAME_{TypeShot.SCALE.name}_BUTTONS_'])

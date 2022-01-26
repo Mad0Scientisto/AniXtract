@@ -8,6 +8,7 @@ import numpy as np
 from typing import Optional, Tuple, Dict, Any
 
 from predictor_net.Predictor import PredictorNet
+from view import viewGenerator
 from PySimpleGUI import Window
 from control.util import convert_millisec_to_timeobj
 from view.Layers import size_videoplayer_frame, size_annotation_frame
@@ -19,7 +20,7 @@ from model.ReportDataframe import ReportAnnotationFilm
 
 class VideoPlayerExtractor(threading.Thread):
 
-    def __init__(self, window: Window, predictor: PredictorNet, parameter: Dict[str, Any]) -> None:
+    def __init__(self, ref_main_view: viewGenerator, predictor: PredictorNet, parameter: Dict[str, Any]) -> None:
         """
         Init the thread
         :param window: Window object, from PySimpleGui
@@ -28,7 +29,8 @@ class VideoPlayerExtractor(threading.Thread):
         """
         # calling parent class constructor
         threading.Thread.__init__(self, daemon=True)
-        self.window = window
+        self.ref_main_view = ref_main_view
+        self.window = self.ref_main_view.main_window
         self.path_file = parameter[KEYDICT_PATH_FILE]
 
         # Load video
@@ -83,6 +85,11 @@ class VideoPlayerExtractor(threading.Thread):
                 sg.popup("Error: CSV badly formatted.\nCSV file not loaded.", non_blocking=True, keep_on_top=True)
                 self.window['_TXT_CSV_LOADED_'].update("CSV badly formatted")
 
+        # Show first frame
+        success_reading, frame = self.video.read()
+        self.print_videoplayer(frame)
+        self.print_frame_captured(frame, self.last_frame_captured)
+
         # Signal to kill thread
         self._signal_stop = False
 
@@ -123,13 +130,16 @@ class VideoPlayerExtractor(threading.Thread):
                 success_reading, frame = self.video.read()
                 if not success_reading:
                     # TODO: gestire  fine video
-                    self.play = False
+                    self.set_play_video(False)
                     self.update_progress_bar()
                     self.window['_PLAY_PAUSE_BUTTON_'].update('Stop')
                     self.window['_BACKWARD_DELTA_FRAME_BUTTON_'].update(disabled=False)
                     self.window['_BACKWARD_ONE_FRAME_BUTTON_'].update(disabled=False)
                     self.window['_FORWARD_ONE_FRAME_BUTTON_'].update(disabled=False)
                     self.window['_FORWARD_DELTA_FRAME_BUTTON_'].update(disabled=False)
+                    self.window['_BTN_MANUAL_EXTRACTION_'].update(disabled=False)
+                    # unlock features button
+                    self.ref_main_view.unlock_features_buttons(True)
                     continue
                 try:
                     assert type(frame) is np.ndarray
@@ -250,7 +260,7 @@ class VideoPlayerExtractor(threading.Thread):
         :return: None
         """
         frame = cv2.resize(frame, size_annotation_frame, interpolation=cv2.INTER_LINEAR)
-        label = 'Frame: {0:04d}'.format(int(frame_num))
+        label = 'Frame: {0:04d}'.format(int(frame_num + 1))
         x1, y1, padding = 20, 20, 5
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)
         cv2.rectangle(frame, (x1 - padding, y1 - h - padding), (x1 + w + padding, y1 + padding), (0, 0, 0), -1)
@@ -284,7 +294,7 @@ class VideoPlayerExtractor(threading.Thread):
         self.play = play
 
     def commute_play_pause(self) -> None:
-        self.play = not self.play
+        self.set_play_video(not self.play)
 
     def signal_stop_thread(self) -> None:
         self._signal_stop = True
@@ -298,6 +308,8 @@ class VideoPlayerExtractor(threading.Thread):
             self.video.set(cv2.CAP_PROP_POS_FRAMES, limit_frames[1])
             return False, limit_frames[1]
         self.video.set(cv2.CAP_PROP_POS_FRAMES, num_frame)
+        self.window['_BTN_MANUAL_EXTRACTION_'].update(disabled=False)
+        self.window['_PLAY_PAUSE_BUTTON_'].update('Play')
         return True, num_frame
 
     def forward_step_frame(self, delta=False) -> None:

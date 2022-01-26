@@ -6,7 +6,7 @@ KEYDICT_CHECKBOX_LEVEL_ = 'checkbox_level'
 KEYDICT_CHECKBOX_SCALE_ = 'checkbox_scale'
 
 size_annotation_frame = (500, 500)
-size_videoplayer_frame = (300, 300) #(256, 256)
+size_videoplayer_frame = (300, 300)  # (256, 256)
 
 default_delta_frames = 1
 
