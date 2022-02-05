@@ -13,9 +13,9 @@ class MetaEnum(EnumMeta):
 
 # name = value
 class TypeShot(Enum, metaclass=MetaEnum):
-    ANGLE = "Angle Shots"
-    LEVEL = "Level Shots"
-    SCALE = "Scale Shots"
+    ANGLE = "Camera Angle"
+    LEVEL = "Camera Level"
+    SCALE = "Shot Scale"
 
 
 class AngleShot(Enum, metaclass=MetaEnum):
@@ -36,7 +36,7 @@ class LevelShot(Enum, metaclass=MetaEnum):
 
 
 class ScaleShot(Enum, metaclass=MetaEnum):
-    CLOSE = "Close"
+    CLOSE = "Close-up"
     MEDIUM = "Medium"
     LONG = "Long"
 

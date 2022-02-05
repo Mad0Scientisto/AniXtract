@@ -13,7 +13,7 @@ from tensorflow.keras.applications.resnet50 import preprocess_input as preproces
 MODEL_ANGLE = ("model_angle_256", preprocess_resnet50, (256, 256), [AngleShot.DUTCH, AngleShot.HIGH, AngleShot.LOW,
                                                                     AngleShot.NOANGLE, AngleShot.OVERHEAD])
 MODEL_LEVEL = ("model_level_256", preprocess_resnet50, (256, 256), [LevelShot.AERIAL, LevelShot.EYE, LevelShot.HIP,
-                                                                    LevelShot.KNEE, LevelShot.SHOULDER])
+                                                                    LevelShot.KNEE, LevelShot.SHOULDER, LevelShot.GROUND])
 MODEL_SCALE = ("model_scale_256", preprocess_resnet50, (256, 256), [ScaleShot.CLOSE, ScaleShot.LONG, ScaleShot.MEDIUM])
 
 

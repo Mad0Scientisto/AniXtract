@@ -149,7 +149,7 @@ layout_frames_extract_shot_view = [
                  sg.Button(">", key='_FORWARD_ONE_FRAME_BUTTON_', disabled=True),
                  sg.Button(">>", key='_FORWARD_DELTA_FRAME_BUTTON_', disabled=True)]], key='_CONTROL_GROUP_BTN_')],
     [sg.Image(filename="", key="_IMAGE_ANNOTATION_", size=size_annotation_frame, background_color='black')],
-    [sg.Frame(TypeShot.LEVEL.value,
+    [sg.Frame(TypeShot.SCALE.value,
               [[sg.Column([[sg.Text(scale_shot_select.value)], [sg.Button(image_data=btn_red_base64,
                                                                           key='_BTN_SHOT_{}_{}_'.format(
                                                                               TypeShot.SCALE.name,
