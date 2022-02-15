@@ -17,7 +17,7 @@ from model.ReportDataframe import PATH_SAVE_CSV
 class ViewGenerator:
 
     def __init__(self) -> None:
-        self.main_window = sg.Window('Demo Feature extractor and annotator', layout_window, resizable=True)
+        self.main_window = sg.Window('AniXtract Feature extractor and annotator', layout_window, resizable=True)
         self.predictor = PredictorNet()
         self.dict_settings_video = {
             KEYDICT_PATH_FILE: '',
