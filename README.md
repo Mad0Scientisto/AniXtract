@@ -23,4 +23,5 @@ di estrazione, da 1 a 7 secondi d'intervallo tra due frame, poi cliccare su ''Lo
 
 ## Download modelli
 I modelli si trovano al link: https://drive.google.com/drive/folders/13LYHyYeakSYc0NaxqSCbMR5qOSOVWnxB?usp=sharing
+
 Scaricare i modelli e metterli nella sottocartella 'predictor_net/models'
