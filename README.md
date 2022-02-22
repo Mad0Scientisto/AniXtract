@@ -9,7 +9,7 @@
  - tensorflow
 
 ## Istruzioni
-
+ - Per far partire il programma eseguire 'python main.py'
  - Nell'area in alto a sinistra, selezionare il filmato da analizzare, le camera-features da estrarre automaticamente con i modelli e la frequenza
 di estrazione, da 1 a 7 secondi d'intervallo tra due frame, poi cliccare su ''Load video and settings''. Se necessario, caricare anche il file csv.
  - Una volta caricato il video, nell'area in basso a sinistra si può vedere la posizione dell'estrattore nel filmato (numero frame e minutaggio).
