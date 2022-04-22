@@ -62,7 +62,7 @@ class PredictorNet:
         Method to call for load model from folder 'models/
         :return: None
         """
-        dirname = os.path.dirname(__file__)
+        dirname = os.getcwd()  # os.path.dirname(__file__)
         model_angle_file = os.path.join(dirname, 'models/' + MODEL_ANGLE[0])
         model_level_file = os.path.join(dirname, 'models/' + MODEL_LEVEL[0])
         model_scale_file = os.path.join(dirname, 'models/' + MODEL_SCALE[0])
@@ -86,8 +86,11 @@ class PredictorNet:
         :return:
         """
         len_mod = len(self.model_predictors)
-        message = "Loaded {} models.\n".format(len_mod)
-        message += ", ".join([name.value for name, _ in self.model_predictors.items()]) if len_mod > 0 else "."
+        if len_mod > 0:
+            message = f"Loaded {len_mod} models:\n"
+            message += f"{', '.join([name.value for name, _ in self.model_predictors.items()])}."
+        else:
+            message = f"No model found in folder 'models/'."
         return message
 
     def active_predictions_from_dict(self, dict_predictions: Dict[str, bool]) -> None:
