@@ -1,4 +1,5 @@
 KEYDICT_PATH_FILE = 'path_file'
+KEYDICT_YT_URL = 'youtube_url'
 KEYDICT_PATH_CSV = 'path_csv'
 KEYDICT_DELTA_FRAME = 'delta_frames'
 KEYDICT_CHECKBOX_ANGLE_ = 'checkbox_angle'

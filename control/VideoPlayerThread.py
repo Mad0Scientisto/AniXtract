@@ -17,6 +17,8 @@ from model.TypeShots import TypeShot, AngleShot, LevelShot, ScaleShot, JoinTypeS
 from control.default_values import *
 from model.ReportDataframe import ReportAnnotationFilm
 
+import pafy
+
 
 class VideoPlayerExtractor(threading.Thread):
 
@@ -31,10 +33,30 @@ class VideoPlayerExtractor(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.ref_main_view = ref_main_view
         self.window = self.ref_main_view.main_window
-        self.path_file = parameter[KEYDICT_PATH_FILE]
 
-        # Load video
-        self.video = cv2.VideoCapture(self.path_file)
+        if parameter[KEYDICT_PATH_FILE]:
+            self.path_file = parameter[KEYDICT_PATH_FILE]
+
+            # Load video
+            self.video = cv2.VideoCapture(self.path_file)
+
+            # Name file
+            self.name_file = self.path_file.split('/')[-1]
+        elif parameter[KEYDICT_YT_URL]:
+            self.url_youtube = parameter[KEYDICT_YT_URL]
+            self.video_youtube_metadata = pafy.new(self.url_youtube)
+            self.video_youtube_stream = self.video_youtube_metadata.getbest(preftype="mp4")
+
+            # Load video
+            self.video = cv2.VideoCapture(self.video_youtube_stream.url)
+
+            # Name file
+            self.name_file = f"{self.video_youtube_metadata.title} --- {self.video_youtube_metadata.watchv_url}"
+        else:
+            print("Error transfer info source")
+            # TODO: gestione errore
+            # TODO: gestire errore cattiva lettura
+
         if not self.video.isOpened():
             print("Error opening video file")
             # TODO: gestione errore
@@ -69,9 +91,6 @@ class VideoPlayerExtractor(threading.Thread):
         self.last_row_in_report_finded = (None, None)
         self.counter_frames = 0
         self.array_last_frame_captured = None
-
-        # Name file
-        self.name_file = self.path_file.split('/')[-1]
 
         # New Report and the predictor
         self.report = ReportAnnotationFilm(self.name_file)

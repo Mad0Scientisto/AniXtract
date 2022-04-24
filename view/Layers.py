@@ -20,19 +20,42 @@ def generate_btn_circle(color: str, size: typing.Tuple[int, int]) -> bytes:
 
 
 # Layout settings and videoplayer
-element_frame_loader_file = sg.Frame('Load video',
-                                     [
-                                         [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
-                                                   justification='right', readonly=True),
-                                          sg.FileBrowse(button_text="Load", file_types=(
-                                              ('MP4 File', '*.mp4'), ('MKV File', '*.mkv')))],
-                                         [sg.Text("Please select a video file", key='_FILEBROWSE_TEXT_')]
-                                     ])
+element_frame_loader_file = [
+                                 [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
+                                           justification='right', readonly=True),
+                                  sg.FileBrowse(button_text="Load", file_types=(
+                                      ('MP4 File', '*.mp4'), ('MKV File', '*.mkv')))],
+                                 [sg.Text("Please select a video file", key='_FILEBROWSE_TEXT_')]
+                             ]
+
+element_frame_url_youtube = [
+                                 [sg.Input(visible=True, size=42, enable_events=True, key='_URLYOUTUBEINPUT_')],
+                                 [sg.Text("Please digit a valid YouTube URL", key='_URLYOUTUBEINPUT_TEXT_')]
+                            ]
 
 element_frame_selector_features = sg.Frame('Select camera features to extract',
                                            [[sg.Checkbox(type_shot.value, default=default_checkbox_type,
                                                          key='_CHECKBOX_{}_'.format(type_shot.name),
                                                          enable_events=True)] for type_shot in TypeShot])
+
+element_select_file_or_url = sg.Frame('Select source',[
+                                            [sg.Radio(
+                                                'Load video',
+                                                group_id='sel_source',
+                                                default=True,
+                                                key="_RADIO_CHOICE_SOURCE_FILE_",
+                                                enable_events=True
+                                            ), sg.Radio(
+                                                'YouTube URL',
+                                                group_id='sel_source',
+                                                default=False,
+                                                key="_RADIO_CHOICE_SOURCE_URL_YT_",
+                                                enable_events=True
+                                            )],
+                                            [sg.pin(sg.Column(element_frame_loader_file, visible=True, key="_GROUP_CHOICE_FILE_SOURCE_"))],
+                                            [sg.pin(sg.Column(element_frame_url_youtube, visible=False, key="_GROUP_CHOICE_URLYT_SOURCE_"))],
+                                        ]
+                                      )
 
 """
 [
@@ -101,7 +124,7 @@ element_right_selector = sg.Column([
 ])
 
 layout_settings = [
-    [element_frame_loader_file],
+    [element_select_file_or_url],
     [element_frame_selector_features, element_right_selector],
 ]
 

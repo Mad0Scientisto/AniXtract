@@ -3,7 +3,7 @@ import os.path
 from datetime import time
 
 from control.VideoPlayerThread import VideoPlayerExtractor
-from control.util import convert_millisec_to_timeobj
+from control.util import convert_millisec_to_timeobj, check_valid_youtube_url
 from control.default_values import *
 from view.Layers import layout_window
 
@@ -12,7 +12,6 @@ from view.Layers import disable_element, reset_red_all_btn, commute_btn
 from model.TypeShots import TypeShot, AngleShot, LevelShot, ScaleShot
 
 from model.ReportDataframe import PATH_SAVE_CSV
-
 
 class ViewGenerator:
 
@@ -46,25 +45,65 @@ class ViewGenerator:
             # Close window event
             if event == "Exit" or event == sg.WIN_CLOSED:
                 break
-            # Load video event
-            elif event == "_FILEBROWSE_":
-                if self.video_player_thread:
-                    self.video_player_thread.signal_stop_thread()
-                pathFile = values[event]
-                if pathFile == '':
-                    msg = "Please select a video"
+            #event radio button
+            elif event == "_RADIO_CHOICE_SOURCE_FILE_" or event == "_RADIO_CHOICE_SOURCE_URL_YT_":
+                if event == "_RADIO_CHOICE_SOURCE_FILE_":
+                    # Reset YT
+                    self.main_window['_URLYOUTUBEINPUT_'].update("")
                     self.dict_settings_video[KEYDICT_PATH_FILE] = ''
                     self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
+                    # make invisible YT
+                    self.main_window['_GROUP_CHOICE_URLYT_SOURCE_'].update(visible=False)
+                    # make visible FILE
+                    self.main_window['_GROUP_CHOICE_FILE_SOURCE_'].update(visible=True)
+                    self.main_window['_FILEBROWSE_TEXT_'].update("Please select a video file")
                 else:
-                    if os.path.isfile(pathFile):
-                        msg = "Video found: {}".format(pathFile.split('/')[-1])
-                        self.dict_settings_video[KEYDICT_PATH_FILE] = pathFile
-                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
-                    else:
-                        msg = "Video does not exist"
+                    # Reset FILE
+                    self.main_window['_FILEBROWSE_'].update("")
+                    self.dict_settings_video[KEYDICT_YT_URL] = ''
+                    self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
+                    # make invisible FILE
+                    self.main_window['_GROUP_CHOICE_FILE_SOURCE_'].update(visible=False)
+                    # make visible YT
+                    self.main_window['_GROUP_CHOICE_URLYT_SOURCE_'].update(visible=True)
+                    self.main_window['_URLYOUTUBEINPUT_TEXT_'].update("Please digit a valid YouTube URL")
+
+            # Load video event
+            elif event == "_FILEBROWSE_" or event =="_URLYOUTUBEINPUT_":
+                if self.video_player_thread:
+                    self.video_player_thread.signal_stop_thread()
+                if event == "_FILEBROWSE_":
+                    pathFile = values[event]
+                    if pathFile == '':
+                        msg = "Please select a video file"
                         self.dict_settings_video[KEYDICT_PATH_FILE] = ''
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
-                self.main_window['_FILEBROWSE_TEXT_'].update(msg)
+                    else:
+                        if os.path.isfile(pathFile):
+                            msg = "Video found: {}".format(pathFile.split('/')[-1])
+                            self.dict_settings_video[KEYDICT_PATH_FILE] = pathFile
+                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
+                        else:
+                            msg = "Video does not exist"
+                            self.dict_settings_video[KEYDICT_PATH_FILE] = ''
+                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
+                    self.main_window['_FILEBROWSE_TEXT_'].update(msg)
+                else:
+                    urlYT = values[event]
+                    if urlYT == '':
+                        msg = "Please digit a valid YouTube URL"
+                        self.dict_settings_video[KEYDICT_YT_URL] = ''
+                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
+                    else:
+                        if check_valid_youtube_url(urlYT):
+                            msg = "URL Valid"
+                            self.dict_settings_video[KEYDICT_YT_URL] = urlYT
+                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
+                        else:
+                            msg = "URL not valid"
+                            self.dict_settings_video[KEYDICT_YT_URL] = ''
+                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
+                    self.main_window['_URLYOUTUBEINPUT_TEXT_'].update(msg)
             elif '_CHECKBOX_' in event:
                 if 'ANGLE' in event:
                     self.dict_settings_video[KEYDICT_CHECKBOX_ANGLE_] = values[event]
@@ -92,6 +131,8 @@ class ViewGenerator:
                 disable_element(self.main_window['_COLUMN_SETTINGS_'], True)
                 self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                 self.main_window['_BTN_RESET_VIDEO_'].update(disabled=False)
+                self.main_window['_RADIO_CHOICE_SOURCE_FILE_'].update(disabled=True)
+                self.main_window['_RADIO_CHOICE_SOURCE_URL_YT_'].update(disabled=True)
                 # init daemon video player
                 self.video_player_thread = VideoPlayerExtractor(self, self.predictor, self.dict_settings_video)
                 # Upgrade progress_bar
@@ -119,8 +160,10 @@ class ViewGenerator:
                         self.main_window["_IMAGE_ANNOTATION_"].update(data='', size=size_annotation_frame)
                         # unlock column settings
                         disable_element(self.main_window['_COLUMN_SETTINGS_'], False)
+                        self.main_window['_RADIO_CHOICE_SOURCE_FILE_'].update(disabled=False)
+                        self.main_window['_RADIO_CHOICE_SOURCE_URL_YT_'].update(disabled=False)
                         self.main_window['_BTN_RESET_VIDEO_'].update(disabled=True)
-                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
+                        #self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
                         self.main_window['_PLAY_PAUSE_BUTTON_'].update('Play')
                         disable_element(self.main_window['_CONTROL_GROUP_BTN_'], True)
                         self.main_window['_BTN_SAVE_CSV_'].update(disabled=True)
@@ -131,11 +174,14 @@ class ViewGenerator:
                         # Clear selections:
                         self.main_window['_FILEBROWSE_'].update("")
                         self.main_window['_FILEBROWSE_TEXT_'].update("Please select a video file")
+                        self.main_window['_URLYOUTUBEINPUT_'].update("")
+                        self.main_window['_URLYOUTUBEINPUT_TEXT_'].update("Please digit a valid YouTube URL")
                         self.main_window['_RATIO_FRAMES_CAPTURE_'].update(default_delta_frames)
                         self.main_window['_BTN_LOAD_CSV_'].update("")
                         self.main_window['_TXT_CSV_LOADED_'].update("Please select a CSV file")
                         # reset dictionary
                         self.dict_settings_video[KEYDICT_PATH_FILE] = ''
+                        self.dict_settings_video[KEYDICT_YT_URL] = ''
                         self.dict_settings_video[KEYDICT_PATH_CSV] = ''
                         self.dict_settings_video[KEYDICT_DELTA_FRAME] = default_delta_frames
                         # disable feature buttons
