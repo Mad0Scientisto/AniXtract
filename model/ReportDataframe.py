@@ -73,7 +73,7 @@ class ReportAnnotationFilm:
                     if isinstance(key, TypeShot):
                         new_row[key.value] = row[key].value
                     else:
-                        new_row[key] = row[key] + 1 # Ricorda: per l'utente i frame partono da 1, per il sistema da 0
+                        new_row[key] = row[key] + 1  # Remember: for the user the frames start at 1, for the system at 0
                 report_conv.append(new_row)
             pd.DataFrame(report_conv).to_csv(FILE_SAVE_CSV.format(self.name_movie.split('.')[-2], now), index=False)
             return True
@@ -92,7 +92,7 @@ class ReportAnnotationFilm:
                 new_dict = {}
                 for h, elem in zip(header, row):
                     if h == KEY_FRAME_NUM:
-                        new_dict[h] = int(elem) - 1 # Ricorda: per l'utente i frame partono da 1, per il sistema da 0
+                        new_dict[h] = int(elem) - 1  # Remember: for the user the frames start at 1, for the system at 0
                     else:
                         if h == TypeShot.ANGLE.value and elem in AngleShot:
                             new_dict[TypeShot(h)] = AngleShot(elem)
@@ -113,7 +113,8 @@ class ReportAnnotationFilm:
             {KEY_FRAME_NUM: n_frame, [type_shot: annotation](0-3)}
         :param n_frame: number of frame in movie.
         :param type_shot: Enum TypeShot (ANGLE; LEVEL; SCALE)
-        :param annotation: Enum of AngleShot (LOW; DUTCH...), LevelShot (EYE; KNEE...) or ScaleShot (CLOSE; MEDIUM; LONG)
+        :param annotation: Enum of AngleShot (LOW; DUTCH...), LevelShot (EYE; KNEE...)
+        or ScaleShot (CLOSE; MEDIUM; LONG)
         :return: True if add new row; False otherwise.
         """
         # check correspondence between type and annotation
