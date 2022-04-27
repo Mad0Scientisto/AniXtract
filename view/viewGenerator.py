@@ -3,6 +3,7 @@ import os.path
 from datetime import time
 
 from control.VideoPlayerThread import VideoPlayerExtractor
+from control.exceptions import TransferInfoError, GenericOpenCVError, OpeningFileError
 from control.util import convert_millisec_to_timeobj, check_valid_youtube_url
 from control.default_values import *
 from view.Layers import layout_window
@@ -88,20 +89,6 @@ class ViewGenerator:
                         self.dict_settings_video[KEYDICT_PATH_FILE] = default_dict_path_file
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                     self.main_window['_FILEBROWSE_TEXT_'].update(msg)
-                    """if pathFile == '':
-                        msg = strfile.MSG_SELECT_VIDEO_FILE
-                        self.dict_settings_video[KEYDICT_PATH_FILE] = default_dict_path_file
-                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
-                    else:
-                        if os.path.isfile(pathFile):
-                            msg = strfile.MSG_SELECT_VIDEO_FILE_OK.format(pathFile.split('/')[-1])
-                            self.dict_settings_video[KEYDICT_PATH_FILE] = pathFile
-                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
-                        else:
-                            msg = strfile.MSG_SELECT_VIDEO_FILE_FAIL
-                            self.dict_settings_video[KEYDICT_PATH_FILE] = default_dict_path_file
-                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
-                    self.main_window['_FILEBROWSE_TEXT_'].update(msg)"""
                 else:
                     urlYT = values[event]
                     if check_valid_youtube_url(urlYT):
@@ -113,21 +100,6 @@ class ViewGenerator:
                         self.dict_settings_video[KEYDICT_YT_URL] = default_dict_url_youtube
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                     self.main_window['_URLYOUTUBEINPUT_TEXT_'].update(msg)
-                    """urlYT = values[event]
-                    if urlYT == '':
-                        msg = strfile.MSG_DIGIT_YOUTUBE_URL
-                        self.dict_settings_video[KEYDICT_YT_URL] = default_dict_url_youtube
-                        self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
-                    else:
-                        if check_valid_youtube_url(urlYT):
-                            msg = strfile.MSG_DIGIT_YOUTUBE_URL_OK
-                            self.dict_settings_video[KEYDICT_YT_URL] = urlYT
-                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
-                        else:
-                            msg = strfile.MSG_DIGIT_YOUTUBE_URL_FAIL
-                            self.dict_settings_video[KEYDICT_YT_URL] = default_dict_url_youtube
-                            self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
-                    self.main_window['_URLYOUTUBEINPUT_TEXT_'].update(msg)"""
             elif '_CHECKBOX_' in event:
                 if 'ANGLE' in event:
                     self.dict_settings_video[KEYDICT_CHECKBOX_ANGLE_] = values[event]
@@ -149,7 +121,7 @@ class ViewGenerator:
                         msg = strfile.MSG_SELECT_CSV_FILE_OK.format(pathFile.split('/')[-1])
                         self.dict_settings_video[KEYDICT_PATH_CSV] = pathFile
                     else:
-                        msg = strfile.MSG_SELECT_CSV_FILE_FAIL
+                        msg = strfile.MSG_SELECT_CSV_FILE_NE
                         self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv
                 self.main_window['_TXT_CSV_LOADED_'].update(msg)
 
@@ -160,13 +132,19 @@ class ViewGenerator:
                 self.main_window['_TXT_CSV_LOADED_'].update(strfile.MSG_SELECT_CSV_FILE)
 
             elif event == '_BTN_LOAD_VIDEO_':
+                try:
+                    # init daemon video player
+                    self.video_player_thread = VideoPlayerExtractor(self, self.predictor, self.dict_settings_video)
+                # If fail, make popup with a message and lock.
+                except (GenericOpenCVError, TransferInfoError, OpeningFileError) as e:
+                    sg.popup(strfile.ERROR_MSG_LOADING_DAEMON_VIDEO_PLAYER.format(e), keep_on_top=True)
+                    continue
                 disable_element(self.main_window['_COLUMN_SETTINGS_'], True)
                 self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                 self.main_window['_BTN_RESET_VIDEO_'].update(disabled=False)
                 self.main_window['_RADIO_CHOICE_SOURCE_FILE_'].update(disabled=True)
                 self.main_window['_RADIO_CHOICE_SOURCE_URL_YT_'].update(disabled=True)
-                # init daemon video player
-                self.video_player_thread = VideoPlayerExtractor(self, self.predictor, self.dict_settings_video)
+                
                 # Upgrade progress_bar
                 self.init_progress_bar(self.video_player_thread.limit_frames[1],
                                        round(self.video_player_thread.duration_movie_second * 1000))
@@ -280,14 +258,16 @@ class ViewGenerator:
                     # reset bottons
                     reset_red_all_btn(self.main_window[f'_FRAME_{type_shot.name}_BUTTONS_'])
 
-                    # Pulsante <- JoinTypeShot se in dict era None, altrimenti ann.
-                    # Controlla se premo lo stesso pulsante
+                    # Button <- JoinTypeShot if in dict was None, otherwise cancel.
+                    # Checks whether I press the same button
                     previous_value = self.video_player_thread.dict_features[type_shot]
 
-                    # Se ripremo lo stesso pulsante, oppure se ne premo un altro
-                    self.video_player_thread.dict_features[type_shot] = ann if previous_value is None or previous_value is not ann else None
+                    # If I press the same button again, or if I press another one.
+                    self.video_player_thread.dict_features[type_shot] = ann \
+                        if previous_value is None or previous_value is not ann else None
                     # commute the choiced button
-                    commute_btn(self.main_window[event], True if previous_value is None or previous_value is not ann else False)
+                    commute_btn(self.main_window[event],
+                                True if previous_value is None or previous_value is not ann else False)
 
                     # Save the row
                     self.video_player_thread.save_state_feat_dict_in_report(type_shot)

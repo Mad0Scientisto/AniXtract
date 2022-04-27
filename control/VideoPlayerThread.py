@@ -17,6 +17,10 @@ from model.TypeShots import TypeShot, AngleShot, LevelShot, ScaleShot, JoinTypeS
 from control.default_values import *
 from model.ReportDataframe import ReportAnnotationFilm
 
+from control.exceptions import TransferInfoError, GenericOpenCVError, OpeningFileError
+
+import control.strings as strfile
+
 import pafy
 
 
@@ -54,20 +58,13 @@ class VideoPlayerExtractor(threading.Thread):
                 # Name file
                 self.name_file = f"{self.video_youtube_metadata.title} --- {self.video_youtube_metadata.watchv_url}"
             else:
-                print("Error transfer info source")
-                # TODO: gestione errore
-                # TODO: gestire errore cattiva lettura
-
+                raise TransferInfoError
             if not self.video.isOpened():
-                print("Error opening video file")
-                # TODO: gestione errore
-                # TODO: gestire errore cattiva lettura
+                raise OpeningFileError
+        except cv2.error as e:
+            raise GenericOpenCVError(e)
 
-        except cv2.error:
-            # TODO: gestione errore
-            pass
-
-        # Get informationo from video: FPS, duration in seconds, total frame, border(first frame, last_frame),
+        # Get information from video: FPS, duration in seconds, total frame, border(first frame, last_frame),
         self.fps = round(self.video.get(cv2.CAP_PROP_FPS))  # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
         self.total_movie_frame = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
         self.limit_frames = (0, self.total_movie_frame - 1)
@@ -105,9 +102,10 @@ class VideoPlayerExtractor(threading.Thread):
         if parameter[KEYDICT_PATH_CSV] != '':
             is_loaded = self.report.load_csv_from_file(parameter[KEYDICT_PATH_CSV])
             if not is_loaded:
+                # TODO: Out of domain!?
                 import PySimpleGUI as sg
-                sg.popup("Error: CSV badly formatted.\nCSV file not loaded.", non_blocking=True, keep_on_top=True)
-                self.window['_TXT_CSV_LOADED_'].update("CSV badly formatted")
+                sg.popup(strfile.ERROR_MSG_CSV_BADLY_FORMATTED, non_blocking=True, keep_on_top=True)
+                self.window['_TXT_CSV_LOADED_'].update(strfile.MSG_SELECT_CSV_FILE_FAIL)
 
         # Show first frame
         success_reading, frame = self.video.read()
@@ -153,7 +151,6 @@ class VideoPlayerExtractor(threading.Thread):
             if self.play:
                 success_reading, frame = self.video.read()
                 if not success_reading:
-                    # TODO: gestire  fine video
                     self.set_play_video(False)
                     self.update_progress_bar()
                     self.window['_PLAY_PAUSE_BUTTON_'].update('Stop')
@@ -215,19 +212,20 @@ class VideoPlayerExtractor(threading.Thread):
     def save_state_feat_dict_in_report(self, type_shot: TypeShot) -> bool:
         # find JoinTypeShot that is True
         joinTypeTrue = self.dict_features[type_shot]
-        if joinTypeTrue:
+        if joinTypeTrue is not None:
             self.last_row_in_report_finded = self.report.get_row(self.last_frame_captured)
             # if i find this row in report search:
             if self.last_row_in_report_finded != (None, None):
                 index_report, row_report = self.last_row_in_report_finded
-                self.report.modify_shot_ann_indexes(index_report, type_shot, joinTypeTrue)
+                return self.report.modify_shot_ann_indexes(index_report, type_shot, joinTypeTrue)
             else:
-                self.report.add_shot_ann(self.counter_frames, type_shot, joinTypeTrue)
+                return self.report.add_shot_ann(self.counter_frames, type_shot, joinTypeTrue)
+        return False
 
-    def modify_actual_row_report(self, type_shot: TypeShot, new_ann: JoinTypeShots):
+    def modify_actual_row_report(self, type_shot: TypeShot, new_ann: JoinTypeShots) -> bool:
         # Upgrade dictionary
         self.dict_features[type_shot] = new_ann
-        self.report.modify_shot_ann_indexes(self.counter_frames, type_shot, new_ann)
+        return self.report.modify_shot_ann_indexes(self.counter_frames, type_shot, new_ann)
 
     def _upgrade_dictionary_feature_by_row(self, row: Dict[TypeShot, JoinTypeShots], activate_btn=False) -> None:
         """
@@ -284,7 +282,7 @@ class VideoPlayerExtractor(threading.Thread):
         :return: None
         """
         frame = cv2.resize(frame, size_annotation_frame, interpolation=cv2.INTER_LINEAR)
-        label = 'Frame: {0:04d}'.format(int(frame_num + 1))
+        label = strfile.string_num_frame_video(int(frame_num + 1))
         x1, y1, padding = 20, 20, 5
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)
         cv2.rectangle(frame, (x1 - padding, y1 - h - padding), (x1 + w + padding, y1 + padding), (0, 0, 0), -1)
@@ -312,7 +310,7 @@ class VideoPlayerExtractor(threading.Thread):
         value_frame, value_millisec = value_frame + 1, value_millisec + (1000 / self.fps)  # Add 1 frame to bar
         self.window['_PROGRESS_BAR_VIDEO_'].update(current_count=value_frame, max=self.limit_frames[1])
         n_frame, timer = value_frame, convert_millisec_to_timeobj(round(value_millisec))
-        self.window['_TIME_FRAME_PROGRESS_BAR_'].update(f"{timer: %M:%S} / {n_frame: 04d}")
+        self.window['_TIME_FRAME_PROGRESS_BAR_'].update(strfile.string_formatted_time_frame(timer, int(n_frame)))
 
     def set_play_video(self, play: bool) -> None:
         self.play = play
@@ -333,7 +331,7 @@ class VideoPlayerExtractor(threading.Thread):
             return False, limit_frames[1]
         self.video.set(cv2.CAP_PROP_POS_FRAMES, num_frame)
         self.window['_BTN_MANUAL_EXTRACTION_'].update(disabled=False)
-        self.window['_PLAY_PAUSE_BUTTON_'].update('Play')
+        self.window['_PLAY_PAUSE_BUTTON_'].update(strfile.TXT_BTN_PLAY)
         return True, num_frame
 
     def forward_step_frame(self, delta=False) -> None:
@@ -363,7 +361,7 @@ class VideoPlayerExtractor(threading.Thread):
         self.set_feature_buttons_by_number_frame(new_n_frame)
 
     def get_current_pos(self) -> Tuple[float, float]:
-        # Quando raggiunge il frame finale, ossia supera self.limit_frames, il time ritorna 0.0
-        # cv2.CAP_PROP_POS_FRAMES _> 'Risponde a Quanti frames ho estratto finora?'
+        # When it reaches the final frame (passes self.limit_frames) the time returns 0.0
+        # cv2.CAP_PROP_POS_FRAMES -> 'Answers How many frames have I drawn so far?'
         # return round(self.video.get(cv2.CAP_PROP_POS_FRAMES)), self.video.get(cv2.CAP_PROP_POS_MSEC)
         return round(self.counter_frames), (self.counter_frames / self.fps) * 1000
