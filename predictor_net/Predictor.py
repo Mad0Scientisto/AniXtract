@@ -8,13 +8,17 @@ from control.default_values import *
 
 from tensorflow.keras.applications.resnet50 import preprocess_input as preprocess_resnet50
 
-# Name_model = (name_file, preprocessor_ref, dim_image_input, ordered_reference_output-shot)
+# Name_model = (name_file, preprocessor_ref, dim_image_input, ordered_reference_output-shot, type-camera-feature)
 
 MODEL_ANGLE = ("model_angle_256", preprocess_resnet50, (256, 256), [AngleShot.DUTCH, AngleShot.HIGH, AngleShot.LOW,
-                                                                    AngleShot.NOANGLE, AngleShot.OVERHEAD])
+                                                                    AngleShot.NOANGLE, AngleShot.OVERHEAD],
+               TypeShot.ANGLE)
 MODEL_LEVEL = ("model_level_256", preprocess_resnet50, (256, 256), [LevelShot.AERIAL, LevelShot.EYE, LevelShot.HIP,
-                                                                    LevelShot.KNEE, LevelShot.SHOULDER, LevelShot.GROUND])
-MODEL_SCALE = ("model_scale_256", preprocess_resnet50, (256, 256), [ScaleShot.CLOSE, ScaleShot.LONG, ScaleShot.MEDIUM])
+                                                                    LevelShot.KNEE, LevelShot.SHOULDER,
+                                                                    LevelShot.GROUND],
+               TypeShot.LEVEL)
+MODEL_SCALE = ("model_scale_256", preprocess_resnet50, (256, 256), [ScaleShot.CLOSE, ScaleShot.LONG, ScaleShot.MEDIUM],
+               TypeShot.SCALE)
 
 
 def preprocessing(frame_byte: np.ndarray, size_tuple: (int, int), preprocessor) -> np.array:
@@ -57,33 +61,75 @@ class PredictorNet:
                 predictions[name] = predictor[3][results[0]]
         return predictions
 
-    def load_predictors(self) -> None:
+    def load_predictors(self) -> bool:
         """
         Method to call for load model from folder 'models/
-        :return: None
+        :return: True if all models are loaded correctly, False otherwise (if just one model are not correctly loaded)
         """
+        correct_load_check = True
+
         dirname = os.getcwd()  # os.path.dirname(__file__)
         model_angle_file = os.path.join(dirname, 'models/' + MODEL_ANGLE[0])
         model_level_file = os.path.join(dirname, 'models/' + MODEL_LEVEL[0])
         model_scale_file = os.path.join(dirname, 'models/' + MODEL_SCALE[0])
 
-        # load model Angle features
-        if os.path.isdir(model_angle_file):
-            self.model_predictors[TypeShot.ANGLE] = (load_model(model_angle_file, compile=False), MODEL_ANGLE[1],
-                                                     MODEL_ANGLE[2], MODEL_ANGLE[3])
-        # load model Level features
-        if os.path.isdir(model_level_file):
-            self.model_predictors[TypeShot.LEVEL] = (load_model(model_level_file, compile=False), MODEL_LEVEL[1],
-                                                     MODEL_LEVEL[2], MODEL_LEVEL[3])
-        # load model Scale features
-        if os.path.isdir(model_scale_file):
-            self.model_predictors[TypeShot.SCALE] = (load_model(model_scale_file, compile=False), MODEL_SCALE[1],
-                                                     MODEL_SCALE[2], MODEL_SCALE[3])
+        for model_file in [[model_angle_file, *MODEL_ANGLE[1:]],
+                           [model_level_file, *MODEL_LEVEL[1:]],
+                           [model_scale_file, *MODEL_SCALE[1:]]]:
+            try:
+                if os.path.isdir(model_file[0]):
+                    type_cf = model_file[4]
+                    self.model_predictors[type_cf] = (load_model(model_file[0], compile=False), model_file[1],
+                                                      model_file[2], model_file[3])
+                    # check if model is correct, else remove
+                    model_output = self.model_predictors[type_cf][0].layers[-1].output.shape[1]
+                    expected_output = len(model_file[3])
+                    if model_output != expected_output:
+                        print(f"Problem model {model_file[0]}: expected {expected_output} output neurons;"
+                              f"actually {model_output} output neurons; Remove model!")
+                        correct_load_check = False
+                        self.model_predictors.pop(type_cf)
+                    else:
+                        print(f"Model {model_file[0]} correctly loaded!")
+
+            except IOError as e:
+                print(f"Error load model {model_file[0]}.\n{e}")
+                correct_load_check = False
+        """try:
+            # load model Angle features
+            if os.path.isdir(model_angle_file):
+                self.model_predictors[TypeShot.ANGLE] = (load_model(model_angle_file, compile=False), MODEL_ANGLE[1],
+                                                         MODEL_ANGLE[2], MODEL_ANGLE[3])
+                # check if model is correct, if not remove
+                if self.model_predictors[TypeShot.ANGLE][0].layers[-1].output.shape[1] != len(MODEL_ANGLE[3]):
+                    self.model_predictors.pop(TypeShot.ANGLE)
+
+            # load model Level features
+            if os.path.isdir(model_level_file):
+                self.model_predictors[TypeShot.LEVEL] = (load_model(model_level_file, compile=False), MODEL_LEVEL[1],
+                                                         MODEL_LEVEL[2], MODEL_LEVEL[3])
+                # check if model is correct, if not remove
+                if self.model_predictors[TypeShot.LEVEL][0].layers[-1].output.shape[1] != len(MODEL_LEVEL[3]):
+                    self.model_predictors.pop(TypeShot.LEVEL)
+
+            # load model Scale features
+            if os.path.isdir(model_scale_file):
+                self.model_predictors[TypeShot.SCALE] = (load_model(model_scale_file, compile=False), MODEL_SCALE[1],
+                                                         MODEL_SCALE[2], MODEL_SCALE[3])
+                # check if model is correct, if not remove
+                if self.model_predictors[TypeShot.SCALE][0].layers[-1].output.shape[1] != len(MODEL_SCALE[3]):
+                    self.model_predictors.pop(TypeShot.SCALE)
+            return True
+
+        except IOError as e:
+            print(f"Error load model!\n{e}")
+            return False"""
+        return correct_load_check
 
     def str_predictors_loaded(self) -> str:
         """
-        Method to print a message. How many and which models are loaded
-        :return:
+        Method to print a message. How many and which models are loaded.
+        :return: string with a message.
         """
         len_mod = len(self.model_predictors)
         if len_mod > 0:
@@ -102,4 +148,3 @@ class PredictorNet:
         self.active_angle = dict_predictions[KEYDICT_CHECKBOX_ANGLE_]
         self.active_level = dict_predictions[KEYDICT_CHECKBOX_LEVEL_]
         self.active_scale = dict_predictions[KEYDICT_CHECKBOX_SCALE_]
-

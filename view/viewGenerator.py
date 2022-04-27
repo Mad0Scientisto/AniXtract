@@ -19,7 +19,7 @@ import control.strings as strfile
 class ViewGenerator:
 
     def __init__(self) -> None:
-        self.main_window = sg.Window('AniXtract Feature extractor and annotator', layout_window, resizable=True)
+        self.main_window = sg.Window(strfile.NAME_MAIN_WINDOW, layout_window, resizable=True)
         self.predictor = PredictorNet()
         self.dict_settings_video = {
             KEYDICT_PATH_FILE: default_dict_path_file,
@@ -34,7 +34,7 @@ class ViewGenerator:
 
     def _init_predictor(self) -> None:
         messageBox = sg.Window(strfile.NAME_WINDOW_LOADING_MODELS,
-                               [[sg.Text(strfile.MSG_LOADING_MODELS)]],
+                               [[sg.Text(strfile.MSG_LOADING_MODELS, justification='center')]],
                                modal=True, no_titlebar=True)
         messageBox.read(timeout=1)
         self.predictor.load_predictors()
@@ -84,7 +84,7 @@ class ViewGenerator:
                         self.dict_settings_video[KEYDICT_PATH_FILE] = pathFile
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
                     else:
-                        msg = strfile.MSG_SELECT_VIDEO_FILE_FAIL
+                        msg = strfile.MSG_SELECT_VIDEO_FILE_FAIL if pathFile != '' else strfile.MSG_SELECT_VIDEO_FILE
                         self.dict_settings_video[KEYDICT_PATH_FILE] = default_dict_path_file
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                     self.main_window['_FILEBROWSE_TEXT_'].update(msg)
@@ -109,7 +109,7 @@ class ViewGenerator:
                         self.dict_settings_video[KEYDICT_YT_URL] = urlYT
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=False)
                     else:
-                        msg = strfile.MSG_DIGIT_YOUTUBE_URL_FAIL
+                        msg = strfile.MSG_DIGIT_YOUTUBE_URL_FAIL if urlYT != '' else strfile.MSG_DIGIT_YOUTUBE_URL
                         self.dict_settings_video[KEYDICT_YT_URL] = default_dict_url_youtube
                         self.main_window['_BTN_LOAD_VIDEO_'].update(disabled=True)
                     self.main_window['_URLYOUTUBEINPUT_TEXT_'].update(msg)
@@ -139,23 +139,25 @@ class ViewGenerator:
                 self.dict_settings_video[KEYDICT_DELTA_FRAME] = values[event]
             elif event == '_LOAD_CSV_':
                 pathFile = values[event]
-                if os.path.isfile(pathFile):
-                    msg = strfile.MSG_SELECT_CSV_FILE_OK.format(pathFile.split('/')[-1])
-                    self.dict_settings_video[KEYDICT_PATH_CSV] = pathFile
-                else:
-                    msg = strfile.MSG_SELECT_CSV_FILE_FAIL if pathFile != '' else strfile.MSG_SELECT_CSV_FILE
-                    self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv
-                """if pathFile == '':
+                if pathFile == '':
                     msg = strfile.MSG_SELECT_CSV_FILE
                     self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv
+                    self.main_window['_BTN_CLEAN_LOAD_CSV_'].update(visible=False)
                 else:
+                    self.main_window['_BTN_CLEAN_LOAD_CSV_'].update(visible=True)
                     if os.path.isfile(pathFile):
                         msg = strfile.MSG_SELECT_CSV_FILE_OK.format(pathFile.split('/')[-1])
                         self.dict_settings_video[KEYDICT_PATH_CSV] = pathFile
                     else:
                         msg = strfile.MSG_SELECT_CSV_FILE_FAIL
-                        self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv"""
+                        self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv
                 self.main_window['_TXT_CSV_LOADED_'].update(msg)
+
+            elif event == '_BTN_CLEAN_LOAD_CSV_':
+                self.dict_settings_video[KEYDICT_PATH_CSV] = default_dict_path_csv
+                self.main_window['_BTN_CLEAN_LOAD_CSV_'].update(visible=False)
+                self.main_window['_LOAD_CSV_'].update(strfile.TXT_INPUT_VOID_CSV_FILE)
+                self.main_window['_TXT_CSV_LOADED_'].update(strfile.MSG_SELECT_CSV_FILE)
 
             elif event == '_BTN_LOAD_VIDEO_':
                 disable_element(self.main_window['_COLUMN_SETTINGS_'], True)

@@ -34,33 +34,38 @@ class VideoPlayerExtractor(threading.Thread):
         self.ref_main_view = ref_main_view
         self.window = self.ref_main_view.main_window
 
-        if parameter[KEYDICT_PATH_FILE]:
-            self.path_file = parameter[KEYDICT_PATH_FILE]
+        try:
+            if parameter[KEYDICT_PATH_FILE]:
+                self.path_file = parameter[KEYDICT_PATH_FILE]
 
-            # Load video
-            self.video = cv2.VideoCapture(self.path_file)
+                # Load video
+                self.video = cv2.VideoCapture(self.path_file)
 
-            # Name file
-            self.name_file = self.path_file.split('/')[-1]
-        elif parameter[KEYDICT_YT_URL]:
-            self.url_youtube = parameter[KEYDICT_YT_URL]
-            self.video_youtube_metadata = pafy.new(self.url_youtube)
-            self.video_youtube_stream = self.video_youtube_metadata.getbest(preftype="mp4")
+                # Name file
+                self.name_file = self.path_file.split('/')[-1]
+            elif parameter[KEYDICT_YT_URL]:
+                self.url_youtube = parameter[KEYDICT_YT_URL]
+                self.video_youtube_metadata = pafy.new(self.url_youtube)
+                self.video_youtube_stream = self.video_youtube_metadata.getbest(preftype="mp4")
 
-            # Load video
-            self.video = cv2.VideoCapture(self.video_youtube_stream.url)
+                # Load video
+                self.video = cv2.VideoCapture(self.video_youtube_stream.url)
 
-            # Name file
-            self.name_file = f"{self.video_youtube_metadata.title} --- {self.video_youtube_metadata.watchv_url}"
-        else:
-            print("Error transfer info source")
+                # Name file
+                self.name_file = f"{self.video_youtube_metadata.title} --- {self.video_youtube_metadata.watchv_url}"
+            else:
+                print("Error transfer info source")
+                # TODO: gestione errore
+                # TODO: gestire errore cattiva lettura
+
+            if not self.video.isOpened():
+                print("Error opening video file")
+                # TODO: gestione errore
+                # TODO: gestire errore cattiva lettura
+
+        except cv2.error:
             # TODO: gestione errore
-            # TODO: gestire errore cattiva lettura
-
-        if not self.video.isOpened():
-            print("Error opening video file")
-            # TODO: gestione errore
-            # TODO: gestire errore cattiva lettura
+            pass
 
         # Get informationo from video: FPS, duration in seconds, total frame, border(first frame, last_frame),
         self.fps = round(self.video.get(cv2.CAP_PROP_FPS))  # OpenCV2 version 2 used "CV_CAP_PROP_FPS"

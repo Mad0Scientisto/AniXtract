@@ -23,12 +23,12 @@ def generate_btn_circle(color: str, size: typing.Tuple[int, int]) -> bytes:
 
 # Layout settings and videoplayer
 element_frame_loader_file = [
-                                 [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
-                                           justification='right', readonly=True),
-                                  sg.FileBrowse(button_text=strfile.TXT_BTN_LOAD_VIDEO_FILE,
-                                                file_types=video_file_ext_supported)],
-                                 [sg.Text(strfile.MSG_SELECT_VIDEO_FILE, key='_FILEBROWSE_TEXT_')]
-                             ]
+                                [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
+                                          justification='right', readonly=True),
+                                 sg.FileBrowse(button_text=strfile.TXT_BTN_LOAD_VIDEO_FILE,
+                                               file_types=video_file_ext_supported)],
+                                [sg.Text(strfile.MSG_SELECT_VIDEO_FILE, key='_FILEBROWSE_TEXT_')]
+                            ]
 
 element_frame_url_youtube = [
                                  [sg.Input(visible=True, size=42, enable_events=True, key='_URLYOUTUBEINPUT_')],
@@ -118,7 +118,9 @@ element_load_from_csv = sg.Frame(strfile.NAME_FRAME_SELECT_CSV_PREV_ANNOTATION,
                                      [sg.Input(visible=True, size=42, enable_events=True, key='_LOAD_CSV_',
                                                justification='right', readonly=True),
                                       sg.FileBrowse(button_text=strfile.TXT_BTN_LOAD_CSV_PREV_ANNOTATION,
-                                                    file_types=csv_ext)
+                                                    file_types=csv_ext),
+                                      sg.Button(strfile.TXT_BTN_CLEAR_INPUT, key='_BTN_CLEAN_LOAD_CSV_',
+                                                visible=False)
                                      ],
                                      [sg.Text(strfile.MSG_SELECT_CSV_FILE, key='_TXT_CSV_LOADED_')]
                                  ])
