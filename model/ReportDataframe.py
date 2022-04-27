@@ -96,9 +96,9 @@ class ReportAnnotationFilm:
                     else:
                         if h == TypeShot.ANGLE.value and elem in AngleShot:
                             new_dict[TypeShot(h)] = AngleShot(elem)
-                        if h == TypeShot.LEVEL.value and elem in LevelShot:
+                        elif h == TypeShot.LEVEL.value and elem in LevelShot:
                             new_dict[TypeShot(h)] = LevelShot(elem)
-                        if h == TypeShot.SCALE.value and elem in ScaleShot:
+                        elif h == TypeShot.SCALE.value and elem in ScaleShot:
                             new_dict[TypeShot(h)] = ScaleShot(elem)
                         else:
                             # reset report
