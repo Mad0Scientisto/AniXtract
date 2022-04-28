@@ -8,8 +8,20 @@ from pathlib import Path
 from datetime import datetime
 
 import logging
+import sys
+import os
 
-PATH_SAVE_CSV = str(Path(os.path.dirname(__file__)).parent.absolute())
+# If with PyInstaller -> one-folder bundle
+# PATH_SAVE_CSV = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+
+# If with PyInstaller -> one-file bundle
+PATH_SAVE_CSV = os.path.dirname(sys.executable)\
+    if getattr(sys, 'frozen', False)\
+    else os.path.dirname(os.path.abspath(__file__))
+
+# Only script
+# PATH_SAVE_CSV = str(Path(os.path.dirname(__file__)).parent.absolute())
+
 FILE_SAVE_CSV = PATH_SAVE_CSV + "/report_movie_{}_{}.csv"
 
 KEY_FRAME_NUM = 'Frame'
