@@ -23,6 +23,9 @@ MSG_POPUP_RESET_EXTRACTION = "Do you want to reset everything? All work done wil
 
 MSG_SAVE_CSV_ANNOTATION = "Annotations saved in folder: {}"
 
+MSG_PRED_LOADED_MODEL = "Loaded {} models:\n{}."
+MSG_PRED_NO_MODELS = "No model found in folder '{}'."
+
 # Text inside an Input area
 TXT_INPUT_VOID_VIDEO_FILE = ''
 TXT_INPUT_VOID_URL_YOUTUBE = ''

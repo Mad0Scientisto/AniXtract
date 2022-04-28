@@ -6,6 +6,8 @@ from typing import Dict
 from model.TypeShots import AngleShot, LevelShot, ScaleShot, JoinTypeShots, TypeShot
 from control.default_values import *
 
+import control.strings as strfile
+
 from tensorflow.keras.applications.resnet50 import preprocess_input as preprocess_resnet50
 
 # Name_model = (name_file, preprocessor_ref, dim_image_input, ordered_reference_output-shot, type-camera-feature)
@@ -69,9 +71,9 @@ class PredictorNet:
         correct_load_check = True
 
         dirname = os.getcwd()  # os.path.dirname(__file__)
-        model_angle_file = os.path.join(dirname, 'models/' + MODEL_ANGLE[0])
-        model_level_file = os.path.join(dirname, 'models/' + MODEL_LEVEL[0])
-        model_scale_file = os.path.join(dirname, 'models/' + MODEL_SCALE[0])
+        model_angle_file = os.path.join(dirname, FOLDER_MODELS + MODEL_ANGLE[0])
+        model_level_file = os.path.join(dirname, FOLDER_MODELS + MODEL_LEVEL[0])
+        model_scale_file = os.path.join(dirname, FOLDER_MODELS + MODEL_SCALE[0])
 
         for model_file in [[model_angle_file, *MODEL_ANGLE[1:]],
                            [model_level_file, *MODEL_LEVEL[1:]],
@@ -133,10 +135,9 @@ class PredictorNet:
         """
         len_mod = len(self.model_predictors)
         if len_mod > 0:
-            message = f"Loaded {len_mod} models:\n"
-            message += f"{', '.join([name.value for name, _ in self.model_predictors.items()])}."
+            message = strfile.MSG_PRED_LOADED_MODEL.format(len_mod, ', '.join([name.value for name, _ in self.model_predictors.items()]))
         else:
-            message = f"No model found in folder 'models/'."
+            message = strfile.MSG_PRED_NO_MODELS.format(FOLDER_MODELS)
         return message
 
     def active_predictions_from_dict(self, dict_predictions: Dict[str, bool]) -> None:
