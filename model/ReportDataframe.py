@@ -12,12 +12,14 @@ import sys
 import os
 
 # If with PyInstaller -> one-folder bundle
-# PATH_SAVE_CSV = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+# PATH_SAVE_CSV = sys._MEIPASS\
+#     if getattr(sys, 'frozen', False)\
+#     else str(Path(os.path.dirname(__file__)).parent.absolute())
 
 # If with PyInstaller -> one-file bundle
 PATH_SAVE_CSV = os.path.dirname(sys.executable)\
     if getattr(sys, 'frozen', False)\
-    else os.path.dirname(os.path.abspath(__file__))
+    else str(Path(os.path.dirname(__file__)).parent.absolute())
 
 # Only script
 # PATH_SAVE_CSV = str(Path(os.path.dirname(__file__)).parent.absolute())
