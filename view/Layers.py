@@ -7,7 +7,9 @@ from control.default_values import *
 
 from PIL import Image, ImageDraw
 import io
-from base64 import b64encode, b64decode
+from base64 import b64encode
+
+import control.strings as strfile
 
 
 def generate_btn_circle(color: str, size: typing.Tuple[int, int]) -> bytes:
@@ -20,20 +22,47 @@ def generate_btn_circle(color: str, size: typing.Tuple[int, int]) -> bytes:
 
 
 # Layout settings and videoplayer
-element_frame_loader_file = sg.Frame('Load video',
-                                     [
-                                         [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
-                                                   justification='right', readonly=True),
-                                          sg.FileBrowse(button_text="Load", file_types=(
-                                              ('MP4 File', '*.mp4'), ('MKV File', '*.mkv')))],
-                                         [sg.Text("Please select a video file", key='_FILEBROWSE_TEXT_')]
-                                     ])
+element_frame_loader_file = [
+                                [sg.Input(visible=True, size=42, enable_events=True, key='_FILEBROWSE_',
+                                          justification='right', readonly=True),
+                                 sg.FileBrowse(button_text=strfile.TXT_BTN_LOAD_VIDEO_FILE,
+                                               file_types=video_file_ext_supported)],
+                                [sg.Text(strfile.MSG_SELECT_VIDEO_FILE, key='_FILEBROWSE_TEXT_')]
+                            ]
 
-element_frame_selector_features = sg.Frame('Select camera features to extract',
+element_frame_url_youtube = [
+                                 [sg.Input(visible=True, size=42, enable_events=True, key='_URLYOUTUBEINPUT_')],
+                                 [sg.Text(strfile.MSG_DIGIT_YOUTUBE_URL, key='_URLYOUTUBEINPUT_TEXT_')]
+                            ]
+
+element_frame_selector_features = sg.Frame(strfile.NAME_FRAME_SELECT_CAMERA_FEATURES,
                                            [[sg.Checkbox(type_shot.value, default=default_checkbox_type,
                                                          key='_CHECKBOX_{}_'.format(type_shot.name),
                                                          enable_events=True)] for type_shot in TypeShot])
 
+element_select_file_or_url = sg.Frame(strfile.NAME_FRAME_SELECT_SRC, [
+                                            [sg.Radio(
+                                                strfile.TXT_RADIO_FILE_SRC,
+                                                group_id='sel_source',
+                                                default=True,
+                                                key="_RADIO_CHOICE_SOURCE_FILE_",
+                                                enable_events=True
+                                            ), sg.Radio(
+                                                strfile.TXT_RADIO_YOUTUBE_SRC,
+                                                group_id='sel_source',
+                                                default=False,
+                                                key="_RADIO_CHOICE_SOURCE_URL_YT_",
+                                                enable_events=True
+                                            )],
+                                            [sg.pin(sg.Column(element_frame_loader_file,
+                                                              visible=True, key="_GROUP_CHOICE_FILE_SOURCE_"))],
+                                            [sg.pin(sg.Column(element_frame_url_youtube,
+                                                              visible=False, key="_GROUP_CHOICE_URLYT_SOURCE_"))],
+                                        ]
+                                      )
+
+
+# Not used
 """
 [
    [sg.Checkbox('Angle Shots', default=default_checkbox_angle,
@@ -47,8 +76,6 @@ element_frame_selector_features = sg.Frame('Select camera features to extract',
                 enable_events=True)]
 ]
 """
-
-# Not used
 """
 element_frame_selector_start = sg.Frame('Start video from:',
                                         [[sg.Column([
@@ -76,23 +103,26 @@ element_frame_selector_start = sg.Frame('Start video from:',
                                         ])]])
 """
 
-element_frame_selector_frame_extracts = sg.Frame('Frames extraction frequency', [
+element_frame_selector_frame_extracts = sg.Frame(strfile.NAME_FRAME_SELECT_FREQUENCY_EXTRACTION, [
     [
-        sg.Text("Capture 1 frame every "),
+        sg.Text(strfile.TXT_PRE_SPIN_FREQ_CAPTURE),
         sg.Spin(values=[i for i in range(1, 8)], initial_value=default_delta_frames, size=(3, 1),
                 key="_RATIO_FRAMES_CAPTURE_",
                 enable_events=True),
-        sg.Text(" seconds")
+        sg.Text(strfile.TXT_POST_SPIN_FREQ_CAPTURE)
     ]
 ])
 
-element_load_from_csv = sg.Frame('Load annotations from CSV file',
+element_load_from_csv = sg.Frame(strfile.NAME_FRAME_SELECT_CSV_PREV_ANNOTATION,
                                  [
-                                     [sg.Input(visible=True, size=42, enable_events=True, key='_BTN_LOAD_CSV_',
+                                     [sg.Input(visible=True, size=42, enable_events=True, key='_LOAD_CSV_',
                                                justification='right', readonly=True),
-                                      sg.FileBrowse(button_text="Load from CSV file", file_types=(
-                                          ("CSV File", "*.csv"),))],
-                                     [sg.Text("Please select a CSV file", key='_TXT_CSV_LOADED_')]
+                                      sg.FileBrowse(button_text=strfile.TXT_BTN_LOAD_CSV_PREV_ANNOTATION,
+                                                    file_types=csv_ext),
+                                      sg.Button(strfile.TXT_BTN_CLEAR_INPUT, key='_BTN_CLEAN_LOAD_CSV_',
+                                                visible=False)
+                                     ],
+                                     [sg.Text(strfile.MSG_SELECT_CSV_FILE, key='_TXT_CSV_LOADED_')]
                                  ])
 
 element_right_selector = sg.Column([
@@ -101,21 +131,21 @@ element_right_selector = sg.Column([
 ])
 
 layout_settings = [
-    [element_frame_loader_file],
+    [element_select_file_or_url],
     [element_frame_selector_features, element_right_selector],
 ]
 
 layout_loading_btn = [
-    [sg.Button("Load video and settings", key='_BTN_LOAD_VIDEO_', disabled=True),
-     sg.Button("Reset", key='_BTN_RESET_VIDEO_', disabled=True)]
+    [sg.Button(strfile.TXT_BTN_LOAD_VIDEO_SET, key='_BTN_LOAD_VIDEO_', disabled=True),
+     sg.Button(strfile.TXT_BTN_RESET_VIDEO_SET, key='_BTN_RESET_VIDEO_', disabled=True)]
 ]
 
 layout_video_frame = [
-    [sg.Image(filename="", key="_IMAGE_VIDEOPLAYER_", size=size_videoplayer_frame,
+    [sg.Image(filename=void_frame_image, key="_IMAGE_VIDEOPLAYER_", size=size_videoplayer_frame,
               background_color='black')],
-    [sg.Text("00:00 / 0000", key="_TIME_FRAME_PROGRESS_BAR_"),
+    [sg.Text(strfile.zf_time_frame(), key="_TIME_FRAME_PROGRESS_BAR_"),
      sg.ProgressBar(max_value=100, orientation='h', size=(30, 10), key="_PROGRESS_BAR_VIDEO_"),
-     sg.Text("00:00 / 0000", key="_TOTAL_TIME_FRAME_PROGRESS_BAR_")],
+     sg.Text(strfile.zf_time_frame(), key="_TOTAL_TIME_FRAME_PROGRESS_BAR_")],
 ]
 
 layout_videoplayer_options = [
@@ -142,13 +172,14 @@ layout_angle_view = sg.Frame(TypeShot.ANGLE.value,
                              key='_FRAME_{}_BUTTONS_'.format(TypeShot.ANGLE.name))
 
 layout_frames_extract_shot_view = [
-    [sg.Column([[sg.Button("<<", key='_BACKWARD_DELTA_FRAME_BUTTON_', disabled=True),
-                 sg.Button("<", key='_BACKWARD_ONE_FRAME_BUTTON_', disabled=True),
-                 sg.Button("Play", key='_PLAY_PAUSE_BUTTON_', disabled=True),
-                 sg.Button("Call model prediction", key="_BTN_MANUAL_EXTRACTION_", disabled=True),
-                 sg.Button(">", key='_FORWARD_ONE_FRAME_BUTTON_', disabled=True),
-                 sg.Button(">>", key='_FORWARD_DELTA_FRAME_BUTTON_', disabled=True)]], key='_CONTROL_GROUP_BTN_')],
-    [sg.Image(filename="", key="_IMAGE_ANNOTATION_", size=size_annotation_frame, background_color='black')],
+    [sg.Column([[sg.Button(strfile.TXT_BTN_BW_DELTA, key='_BACKWARD_DELTA_FRAME_BUTTON_', disabled=True),
+                 sg.Button(strfile.TXT_BTN_BW_ONE, key='_BACKWARD_ONE_FRAME_BUTTON_', disabled=True),
+                 sg.Button(strfile.TXT_BTN_PLAY, key='_PLAY_PAUSE_BUTTON_', disabled=True),
+                 sg.Button(strfile.TXT_BTN_MANUAL_PRED, key="_BTN_MANUAL_EXTRACTION_", disabled=True),
+                 sg.Button(strfile.TXT_BTN_FW_ONE, key='_FORWARD_ONE_FRAME_BUTTON_', disabled=True),
+                 sg.Button(strfile.TXT_BTN_FW_DELTA, key='_FORWARD_DELTA_FRAME_BUTTON_', disabled=True)]],
+               key='_CONTROL_GROUP_BTN_')],
+    [sg.Image(filename=void_frame_image, key="_IMAGE_ANNOTATION_", size=size_annotation_frame, background_color='black')],
     [sg.Frame(TypeShot.SCALE.value,
               [[sg.Column([[sg.Text(scale_shot_select.value)], [sg.Button(image_data=btn_red_base64,
                                                                           key='_BTN_SHOT_{}_{}_'.format(
@@ -267,8 +298,8 @@ layout_feature_annotator = [
 # -------------------------------------------------------------------------------------------------------
 
 layout_table = [
-    sg.Column([[sg.Save("Save annotations to CSV", key="_BTN_SAVE_CSV_", disabled=True)]], element_justification='r',
-              expand_x=True, expand_y=True),
+    sg.Column([[sg.Save(strfile.TXT_BTN_SAVE_ANNOTATION, key="_BTN_SAVE_CSV_", disabled=True)]],
+              element_justification='r', expand_x=True, expand_y=True),
 ]
 
 # -------------------------------------------------------------------------------------------------------
