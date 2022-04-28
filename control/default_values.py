@@ -25,3 +25,5 @@ csv_ext = (("CSV File", "*.csv"),)
 
 # Image to show when frame is void or disable. For black screen use void string ''.
 void_frame_image = ''  # For data or filename in PySimpleGUI.Image()
+
+FOLDER_MODELS = 'models/'
