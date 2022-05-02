@@ -27,11 +27,12 @@ The models can be found at: https://cinescale.github.io/anime/#get-the-model (al
 
 Download the models and place them in the `/models` folder.
 
-## Extra: use yt-dlp
-`yt-dlp` is a fork of `youtube-dl` with new features and patches (https://github.com/yt-dlp/yt-dlp). To use the source code with yt-dlp you have to edit the source code of the module `pafy`:
+## Extra: use `yt-dlp` instead of `youtube-dl`
+`yt-dlp` is a fork of `youtube-dl` with new features and patches (https://github.com/yt-dlp/yt-dlp). To use the source code with `yt-dlp` you have to edit the source code of the module `pafy`:
  - In file `pafy.py`:
    - row 48 -> import yt_dlp as youtube_dl
    - row 49 -> backend = "yt-dlp"  #"youtube-dl"
    - row 52 -> Change the string message if you want.
  - In file `backend_youtube_dl.py`:
    - row 13 -> import yt_dlp as youtube_dl
+Finally, download the Python module `yt-dlp`.
