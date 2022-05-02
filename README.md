@@ -20,9 +20,9 @@
  - Click on `Call model prediction` to force a model prediction on the frame.
  - Annotation buttons are located on the edges of the screen. At the chosen frame, click on the button corresponding to the chosen annotation. Reclick
  the button to cancel the choice made.
- - Click on `Save annotation to CSV` to save the annotation up to that moment in a csv file.
+ - Click on `Save annotation to CSV` to save the annotation up to that moment in a `.csv' file.
 
 ## Download Keras models
-The models can be found at: https://cinescale.github.io/anime/#get-the-model (alternative link: https://drive.google.com/drive/folders/13LYHyYeakSYc0NaxqSCbMR5qOSOVWnxB?usp=sharing) These models work with version 2.6.0 of Tensorflow and Keras.
+The models can be found at: https://cinescale.github.io/anime/#get-the-model (alternative link: https://drive.google.com/drive/folders/13LYHyYeakSYc0NaxqSCbMR5qOSOVWnxB?usp=sharing). These models work with version 2.6.0 of Tensorflow and Keras.
 
 Download the models and place them in the `/models` folder.
