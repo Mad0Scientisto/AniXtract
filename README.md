@@ -1,27 +1,28 @@
-# AniXtract: tool di estrazione, classificazione e annotazione delle camera-feature
+# AniXtract: camera-feature extraction, classification and annotation tool
 
-## Pacchetti Python richiesti
+## Python dependencies
  - PySimpleGUI
- - pillow
+ - Pillow
  - opencv-python
+ - pafy
+ - youtube-dl
  - pandas
- - keras
- - tensorflow
+ - keras and tensorflow (2.6.0, read below)
 
 ## Istruzioni
- - Per far partire il programma eseguire 'python main.py'
- - Nell'area in alto a sinistra, selezionare il filmato da analizzare, le camera-features da estrarre automaticamente con i modelli e la frequenza
-di estrazione, da 1 a 7 secondi d'intervallo tra due frame, poi cliccare su ''Load video and settings''. Se necessario, caricare anche il file csv.
- - Una volta caricato il video, nell'area in basso a sinistra si può vedere la posizione dell'estrattore nel filmato (numero frame e minutaggio).
- - In alto a destra ci sono i controlli per il video. Cliccare su ''Play'' per avviare l'estrazioen automatica. Cliccare su ''Pause'' per mettere in pausa.
- Cliccare su ''<'' o ''>'' per scorrere il filmato all'indietro o in avanti di un frame alla volta, oppure ''<<'' o ''>>'' per saltare di un numero
- di frame pari alla frequenza di estrazione.
- - Cliccare su ''Call model prediction'' per forzare una valutazione del modello sul frame.
- - Sui bordi della schermata si trovano i bottoni per l'annotazione. Al frame scelto cliccare sul bottone corrispondente all'annotazione scelta. Ricliccare
- il bottone per annullare la scelta fatta.
- - Cliccare su ''Save annotation to CSV'' per salvare l'annotazione fino a quell'istante in un file csv.
+ - Place the Keras models in the `/models` folder. They will be recognised automatically on start-up.
+ - The programme is available in the form of executable releases under Microsoft or Linux: simply run the respective executables. Alternatively, to use the source code directly, you need to install the dependencies listed above and run `python main.py`.
+ - In the area at the top left, select the film to be analysed: you can choose a local file (accepted formats `.mkv` and `.mp4`) or a film from YouTube by typing in the full URL. Then select the camera-features to be extracted automatically with the models and the extraction frequency, from 1 to 7 seconds between two frames, then click on `Load video and settings`. If necessary, also load the csv file.
+ - Once the video has been loaded, in the lower left-hand area you can see the position of the extractor in the film (number of frames and minutes).
+ - At the top right are the controls for the video. Click on `Play` to start the automatic extraction. Click on `Pause` to pause.
+ Click on `<` or `>` to scroll backwards or forwards one frame at a time, or `<<` or `>>` to skip a number of frames equal to the draw frequency.
+ of frames equal to the extraction frequency.
+ - Click on `Call model prediction` to force a model prediction on the frame.
+ - Annotation buttons are located on the edges of the screen. At the chosen frame, click on the button corresponding to the chosen annotation. Reclick
+ the button to cancel the choice made.
+ - Click on `Save annotation to CSV` to save the annotation up to that moment in a csv file.
 
-## Download modelli
-I modelli si trovano al link: https://drive.google.com/drive/folders/13LYHyYeakSYc0NaxqSCbMR5qOSOVWnxB?usp=sharing
+## Download Keras models
+The models can be found at: https://cinescale.github.io/anime/#get-the-model (alternative link: https://drive.google.com/drive/folders/13LYHyYeakSYc0NaxqSCbMR5qOSOVWnxB?usp=sharing) These models work with version 2.6.0 of Tensorflow and Keras.
 
-Scaricare i modelli e metterli nella sottocartella 'predictor_net/models'
+Download the models and place them in the `/models` folder.
