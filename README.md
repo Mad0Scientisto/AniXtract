@@ -1,4 +1,13 @@
 # AniXtract: camera-feature extraction, classification and annotation tool
+AniXtract is a tool for extracting and annotating camera-features from the videos. Through the use of Neural Network models, the program is able to automatically classify of each frame of a movie (whether a local video file or a Youtube movie) the camera-features. The program allows you to:
+ - Make automatic annotation of the three camera-features Camera Angle, Camera Level and Shot Scale using Keras models
+ - Perform manual scrolling of frames;
+ - Perform automatic scrolling of frames (by setting the number of seconds between frames);
+ - Manually query the models regarding the classification of a chosen frame
+ - Save and upload annotations in `CSV` format.
+
+## Why is it called AniXtract?
+This program was initially developed as a practical application of a research project concerning the possibility of classifying the camera-features of Japanese animated films or *anime* (https://cinescale.github.io/anime/). However, nothing prevents the use in this application of trained models also for other types of cinematography (b&w, live-action, etc.).
 
 ## Python dependencies
  - PySimpleGUI
