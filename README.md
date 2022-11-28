@@ -19,7 +19,7 @@ This program was initially developed as a practical application of a research pr
  - keras and tensorflow (2.6.0, read below)
 
 ## Instructions
- - Place the Keras models in the `/models` folder. They will be recognised automatically on start-up.
+ - Place the Keras models in the `/models` folder. Models must be Tensorflow models in folders named `model_[level|angle|scale]_256`. They will be recognised automatically on start-up.
  - The programme is available in the form of executable releases under Microsoft or Linux: simply run the respective executables. Alternatively, to use the source code directly, you need to install the dependencies listed above and run `python main.py`.
  - In the area at the top left, select the film to be analysed: you can choose a local file (accepted formats `.mkv` and `.mp4`) or a film from YouTube by typing in the full URL. Then select the camera-features to be extracted automatically with the models and the extraction frequency, from 1 to 7 seconds between two frames, then click on `Load video and settings`. If necessary, also load the csv file.
  - Once the video has been loaded, in the lower left-hand area you can see the position of the extractor in the film (number of frames and minutes).
